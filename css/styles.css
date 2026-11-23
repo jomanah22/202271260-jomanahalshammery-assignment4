@@ -1378,6 +1378,27 @@ h3 {
   min-height: 1.6em;
 }
 
+/* --------------------------------------------------------------------------
+   15. Skip link, current nav item,
+   clickable work cards, case-study dialog, experience, copy button
+   -------------------------------------------------------------------------- */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background-color: var(--text);
+  color: var(--bg);
+  border-radius: 0 0 var(--radius) var(--radius);
+  font-weight: 500;
+}
+
+.skip-link:focus {
+  top: 0;
+  color: var(--bg);
+}
+
 @media (max-width: 768px) {
   .project-toolbar {
     gap: 0.9rem;
