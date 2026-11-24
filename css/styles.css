@@ -1399,6 +1399,14 @@ h3 {
   color: var(--bg);
 }
 
+.nav-list a.is-current {
+  color: var(--text);
+}
+
+.nav-list a.is-current::after {
+  transform: scaleX(1);
+}
+
 @media (max-width: 768px) {
   .project-toolbar {
     gap: 0.9rem;

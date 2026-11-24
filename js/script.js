@@ -113,10 +113,11 @@
   themeToggle.setAttribute('aria-label', currentTheme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
 
   /* ------------------------------------------------------------------
-     3. Mobile navigation
+     3. Navigation
      ------------------------------------------------------------------ */
   var menuToggle = document.getElementById('menu-toggle');
   var nav = document.getElementById('site-nav');
+  var navLinks = nav.querySelectorAll('a[href^="#"]');
 
   function setMenu(open) {
     nav.classList.toggle('is-open', open);
@@ -138,6 +139,34 @@
       menuToggle.focus();
     }
   });
+
+  // Highlight the nav link for the section currently in view
+  if ('IntersectionObserver' in window) {
+    var sectionObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) {
+          return;
+        }
+        var id = entry.target.id;
+        navLinks.forEach(function (link) {
+          var current = link.getAttribute('href') === '#' + id;
+          link.classList.toggle('is-current', current);
+          if (current) {
+            link.setAttribute('aria-current', 'true');
+          } else {
+            link.removeAttribute('aria-current');
+          }
+        });
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+
+    navLinks.forEach(function (link) {
+      var section = document.querySelector(link.getAttribute('href'));
+      if (section) {
+        sectionObserver.observe(section);
+      }
+    });
+  }
 
   /* ------------------------------------------------------------------
      4. Projects
