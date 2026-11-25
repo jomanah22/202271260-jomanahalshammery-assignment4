@@ -182,6 +182,7 @@
   var resultCount = document.getElementById('project-count');
   var clearButton = document.getElementById('project-clear');
   var query = '';
+  var visible = []; // the projects currently shown, in display order
 
   // Guard against a remembered filter/sort that no longer exists in data
   if (['All'].concat(PROJECT_FILTERS).indexOf(state.filter) === -1) {
@@ -220,17 +221,17 @@
     var tags = project.tags.map(function (tag) { return '<li>' + escapeHtml(tag) + '</li>'; }).join('');
     return (
       '<article class="card project-card" data-id="' + project.id + '">' +
-        '<button type="button" class="project-media" aria-label="View ' + escapeHtml(project.title) + ' full size">' +
+        '<button type="button" class="project-media" data-open="' + project.id + '" aria-label="Open case study: ' + escapeHtml(project.title) + '">' +
           '<img src="' + project.image + '" alt="" width="1200" height="750" loading="lazy" decoding="async">' +
         '</button>' +
         '<div class="project-body">' +
           '<span class="badge' + (project.kind === 'Project' ? ' badge-accent' : '') + '">' + escapeHtml(project.kind) + '</span>' +
-          '<h3>' + escapeHtml(project.title) + '</h3>' +
+          '<h3><button type="button" class="title-button" data-open="' + project.id + '">' + escapeHtml(project.title) + '</button></h3>' +
           '<p class="project-summary">' + escapeHtml(project.summary) + '</p>' +
           '<ul class="tags">' + tags + '</ul>' +
-          '<button type="button" class="details-toggle" data-notes="' + project.id + '">' +
-            '<span>Process &amp; notes</span>' +
-            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>' +
+          '<button type="button" class="details-toggle" data-open="' + project.id + '">' +
+            '<span>View case study</span>' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>' +
           '</button>' +
         '</div>' +
       '</article>'
@@ -258,7 +259,7 @@
   }
 
   function renderProjects() {
-    var visible = visibleProjects();
+    visible = visibleProjects();
     projectList.innerHTML = visible.map(projectTemplate).join('');
 
     var narrowed = query || state.filter !== 'All';
@@ -302,59 +303,152 @@
   clearButton.addEventListener('click', resetProjectControls);
   document.getElementById('project-empty-reset').addEventListener('click', resetProjectControls);
 
-  /* "Process & notes" opens a popup with the full write-up for that card.
-     showModal() supplies the backdrop, focus trap and Escape; we add the
-     content, a click-outside close and focus return. */
-  var notesDialog = document.getElementById('notes-dialog');
-  var notesOpener = null;
-
-  function openNotes(project, trigger) {
-    notesOpener = trigger || null;
-    document.getElementById('notes-kind').textContent = project.kind;
-    document.getElementById('notes-title').textContent = project.title;
-    document.getElementById('notes-summary').textContent = project.summary;
-    document.getElementById('notes-process').textContent = project.process;
-    document.getElementById('notes-learning').textContent = project.learning;
-    document.getElementById('notes-tags').innerHTML = project.tags.map(function (tag) {
-      return '<li>' + escapeHtml(tag) + '</li>';
-    }).join('');
-    notesDialog.querySelector('.notes-inner').scrollTop = 0;
-    notesDialog.showModal();
-    document.body.classList.add('has-notes');
-  }
-
-  projectList.addEventListener('click', function (event) {
-    var toggle = event.target.closest('.details-toggle');
-    if (!toggle) {
-      return;
-    }
-    var project = PROJECTS.filter(function (item) { return item.id === toggle.dataset.notes; })[0];
-    if (project) {
-      openNotes(project, toggle);
-    }
-  });
-
-  document.getElementById('notes-close').addEventListener('click', function () { notesDialog.close(); });
-  notesDialog.addEventListener('click', function (event) {
-    if (event.target === notesDialog) {
-      notesDialog.close();
-    }
-  });
-  notesDialog.addEventListener('close', function () {
-    document.body.classList.remove('has-notes');
-    if (notesOpener && document.body.contains(notesOpener)) {
-      notesOpener.focus();
-    }
-  });
-
   syncControls();
   renderProjects();
 
   /* ------------------------------------------------------------------
-     5. Practice log
-     In-class exercises rendered from EXERCISES. The whole list can
-     be shown or hidden and the choice is remembered. Each entry is a
-     native <details> element, which gives keyboard support for free.
+     5. Case-study viewer
+     A native <dialog>: showModal() gives us focus trapping, Escape to
+     close and a backdrop. We add: content filling, previous/next within
+     the current list order (buttons and arrow keys), returning focus to
+     the element that opened it, and a #work/<id> hash so a case study
+     can be linked to directly.
+     ------------------------------------------------------------------ */
+  var dialog = document.getElementById('case-dialog');
+  var caseMedia = document.getElementById('case-media');
+  var casePrev = document.getElementById('case-prev');
+  var caseNext = document.getElementById('case-next');
+  var openedFrom = null;
+  var currentId = null;
+
+  function projectById(id) {
+    return PROJECTS.filter(function (p) { return p.id === id; })[0] || null;
+  }
+
+  // Every picture in the case study sits in a button, so it can be opened
+  // full size in the image viewer (section 11) by mouse or keyboard.
+  function mediaButton(src, alt, className, width, height) {
+    return (
+      '<button type="button" class="case-media-button" aria-label="View ' + alt + ' full size">' +
+        '<img class="' + className + '" src="' + src + '" alt="' + alt + '" width="' + width + '" height="' + height + '" loading="lazy" decoding="async">' +
+      '</button>'
+    );
+  }
+
+  function fillCase(project) {
+    currentId = project.id;
+
+    // Media: a tall poster, or a gallery of slides
+    if (project.poster) {
+      caseMedia.innerHTML = mediaButton(project.poster, 'Process poster for ' + escapeHtml(project.title), 'case-poster', 1000, 1414);
+    } else if (project.gallery) {
+      caseMedia.innerHTML = '<div class="case-gallery">' + project.gallery.map(function (src, index) {
+        return mediaButton(src, 'Slide ' + (index + 1) + ' from ' + escapeHtml(project.title), 'case-slide', 1200, 675);
+      }).join('') + '</div>';
+    } else {
+      caseMedia.innerHTML = mediaButton(project.image, 'Cover image for ' + escapeHtml(project.title), 'case-cover', 1200, 750);
+    }
+
+    document.getElementById('case-meta').textContent = project.kind + ' · ' + project.year;
+    document.getElementById('case-title').textContent = project.title;
+    document.getElementById('case-summary').textContent = project.summary;
+    document.getElementById('case-process').textContent = project.process;
+    document.getElementById('case-learning').textContent = project.learning;
+    document.getElementById('case-details').innerHTML = (project.details || []).map(function (row) {
+      return '<div><dt>' + escapeHtml(row[0]) + '</dt><dd>' + escapeHtml(row[1]) + '</dd></div>';
+    }).join('');
+    document.getElementById('case-tags').innerHTML = project.tags.map(function (tag) {
+      return '<li>' + escapeHtml(tag) + '</li>';
+    }).join('');
+
+    // Previous / next follow whatever order and filter the list is showing
+    var list = visible.length ? visible : PROJECTS;
+    var index = list.indexOf(project);
+    casePrev.disabled = index <= 0;
+    caseNext.disabled = index === -1 || index >= list.length - 1;
+    document.getElementById('case-position').textContent = index === -1 ? '' : (index + 1) + ' of ' + list.length;
+
+    dialog.querySelector('.case-inner').scrollTop = 0;
+  }
+
+  function openCase(id, trigger) {
+    var project = projectById(id);
+    if (!project) {
+      return;
+    }
+    openedFrom = trigger || null;
+    fillCase(project);
+    if (!dialog.open) {
+      dialog.showModal();
+      document.body.classList.add('has-dialog');
+    }
+    history.replaceState(null, '', '#work/' + id);
+  }
+
+  function stepCase(direction) {
+    var list = visible.length ? visible : PROJECTS;
+    var index = list.indexOf(projectById(currentId));
+    var next = list[index + direction];
+    if (next) {
+      openCase(next.id, openedFrom);
+    }
+  }
+
+  projectList.addEventListener('click', function (event) {
+    var trigger = event.target.closest('[data-open]');
+    if (trigger) {
+      openCase(trigger.dataset.open, trigger);
+    }
+  });
+
+  document.getElementById('case-close').addEventListener('click', function () { dialog.close(); });
+  casePrev.addEventListener('click', function () { stepCase(-1); });
+  caseNext.addEventListener('click', function () { stepCase(1); });
+
+  // Click on the backdrop (outside .case-inner) closes
+  dialog.addEventListener('click', function (event) {
+    if (event.target === dialog) {
+      dialog.close();
+    }
+  });
+
+  dialog.addEventListener('keydown', function (event) {
+    if (event.key === 'ArrowRight') { stepCase(1); }
+    if (event.key === 'ArrowLeft') { stepCase(-1); }
+  });
+
+  dialog.addEventListener('close', function () {
+    document.body.classList.remove('has-dialog');
+    currentId = null;
+    history.replaceState(null, '', location.pathname + location.search + '#projects');
+    if (openedFrom && document.body.contains(openedFrom)) {
+      openedFrom.focus();
+    } else {
+      // The trigger may have been re-rendered; fall back to the same project's card
+      var card = projectList.querySelector('.title-button');
+      if (card) { card.focus(); }
+    }
+  });
+
+  // Deep link: /#work/hidden-gate opens that case study on load, and the
+  // hash is watched afterwards so back/forward and pasted links keep working.
+  // (openCase/close use replaceState, which doesn't fire hashchange, so this
+  // only reacts to changes made from outside.)
+  function openFromHash() {
+    var match = /^#work\/([\w-]+)$/.exec(location.hash);
+    if (match && projectById(match[1])) {
+      if (match[1] !== currentId) {
+        openCase(match[1], null);
+      }
+    } else if (dialog.open) {
+      dialog.close();
+    }
+  }
+  window.addEventListener('hashchange', openFromHash);
+  openFromHash();
+
+  /* ------------------------------------------------------------------
+     6. In-class exercises
      ------------------------------------------------------------------ */
   var logToggle = document.getElementById('log-toggle');
   var logList = document.getElementById('log-list');
@@ -396,10 +490,7 @@
   renderLog();
 
   /* ------------------------------------------------------------------
-     6. Live weather and local time
-     One line in the Contact section: "It's 3:15 PM in Khobar, 38° and
-     clear." The clock ticks every minute; the weather comes from
-     Open-Meteo and is cached for a few minutes.
+     7. Live weather and local time
      ------------------------------------------------------------------ */
   var nowLine = document.getElementById('now-line');
   var loc = CONFIG.location;
@@ -465,11 +556,7 @@
 
 
   /* ------------------------------------------------------------------
-     7. Contact form
-     Step 1: every field has a value.  Step 2: values have the right
-     shape (email format, message length).  Only when both steps pass is
-     the message accepted. The topic changes the hint under the message
-     box and the confirmation text. A draft is kept in localStorage.
+     8. Contact
      ------------------------------------------------------------------ */
   var form = document.getElementById('contact-form');
   var status = document.getElementById('form-status');
@@ -613,7 +700,7 @@
   });
 
   /* ------------------------------------------------------------------
-     8. Scroll reveal
+     9. Scroll reveal and footer year
      ------------------------------------------------------------------ */
   var revealItems = document.querySelectorAll('.reveal');
 
@@ -642,9 +729,6 @@
   }
 
   /* ------------------------------------------------------------------
-     9. Footer year
-     ------------------------------------------------------------------ */
-  /* ------------------------------------------------------------------
      Typing effect for the hero title
      ------------------------------------------------------------------ */
   var heroTitle = document.getElementById('hero-title');
@@ -666,14 +750,12 @@
   document.getElementById('year').textContent = new Date().getFullYear();
 
   /* ------------------------------------------------------------------
-     10. Project image viewer
-     Each project cover is a button. Clicking it shows that picture full
-     size in a native <dialog>: showModal() gives the backdrop, the focus
-     trap and Escape to close. On top of that we add the caption, previous
-     / next (buttons and the arrow keys), a click outside the picture to
-     close, and returning focus to the cover that opened the viewer.
-     The covers are read from the page each time it opens, so previous /
-     next follow whatever the filter, sort and search are showing.
+     10. Image viewer
+     Clicking a picture inside the case study opens it full size in a
+     second <dialog>, stacked on top of the first one. Nested modals are
+     allowed: the top layer keeps them in order, so Escape closes only
+     the viewer and the case study stays where it was. Previous / next
+     walk the pictures of the case study that is currently open.
      ------------------------------------------------------------------ */
   var lightbox = document.getElementById('lightbox');
   var lightboxImage = document.getElementById('lightbox-image');
@@ -681,54 +763,46 @@
   var lightboxPosition = document.getElementById('lightbox-position');
   var lightboxPrev = document.getElementById('lightbox-prev');
   var lightboxNext = document.getElementById('lightbox-next');
-  var covers = [];
-  var coverIndex = 0;
-  var openedFrom = null;
+  var shots = [];
+  var shotIndex = 0;
+  var lightboxOpener = null;
 
-  function coverTitle(button) {
-    var card = button.closest('.project-card');
-    var heading = card ? card.querySelector('h3') : null;
-    return heading ? heading.textContent.trim() : '';
-  }
-
-  function showCover(index) {
-    if (!covers.length) {
+  function showShot(index) {
+    if (!shots.length) {
       return;
     }
     // Wrap around, so the arrows never dead-end
-    coverIndex = (index + covers.length) % covers.length;
+    shotIndex = (index + shots.length) % shots.length;
 
-    var button = covers[coverIndex];
+    var button = shots[shotIndex];
     var image = button.querySelector('img');
-    var title = coverTitle(button);
 
     lightboxImage.src = image.currentSrc || image.src;
-    lightboxImage.alt = title ? 'Cover image for ' + title : '';
-    lightboxTitle.textContent = title;
-    lightboxPosition.textContent = (coverIndex + 1) + ' of ' + covers.length;
+    lightboxImage.alt = image.alt;
+    lightboxTitle.textContent = image.alt;
+    lightboxPosition.textContent = (shotIndex + 1) + ' of ' + shots.length;
 
     // One picture on its own needs no navigation
-    var single = covers.length < 2;
+    var single = shots.length < 2;
     lightboxPrev.hidden = single;
     lightboxNext.hidden = single;
   }
 
   function openLightbox(button) {
-    covers = Array.prototype.slice.call(projectList.querySelectorAll('.project-media'));
-    var index = covers.indexOf(button);
+    shots = Array.prototype.slice.call(caseMedia.querySelectorAll('.case-media-button'));
+    var index = shots.indexOf(button);
     if (index === -1) {
       return;
     }
-    openedFrom = button;
-    showCover(index);
+    lightboxOpener = button;
+    showShot(index);
     if (!lightbox.open) {
       lightbox.showModal();
-      document.body.classList.add('has-lightbox');
     }
   }
 
-  projectList.addEventListener('click', function (event) {
-    var button = event.target.closest('.project-media');
+  caseMedia.addEventListener('click', function (event) {
+    var button = event.target.closest('.case-media-button');
     if (button) {
       openLightbox(button);
     }
@@ -737,8 +811,8 @@
   document.getElementById('lightbox-close').addEventListener('click', function () {
     lightbox.close();
   });
-  lightboxPrev.addEventListener('click', function () { showCover(coverIndex - 1); });
-  lightboxNext.addEventListener('click', function () { showCover(coverIndex + 1); });
+  lightboxPrev.addEventListener('click', function () { showShot(shotIndex - 1); });
+  lightboxNext.addEventListener('click', function () { showShot(shotIndex + 1); });
 
   // Anything outside the picture itself is backdrop, so a click there closes
   lightbox.addEventListener('click', function (event) {
@@ -754,19 +828,26 @@
 
   lightbox.addEventListener('keydown', function (event) {
     if (event.key === 'ArrowLeft') {
-      showCover(coverIndex - 1);
+      showShot(shotIndex - 1);
     }
     if (event.key === 'ArrowRight') {
-      showCover(coverIndex + 1);
+      showShot(shotIndex + 1);
     }
   });
 
   lightbox.addEventListener('close', function () {
-    document.body.classList.remove('has-lightbox');
-    // The card may have been re-rendered by a filter while the viewer was open
-    if (openedFrom && document.body.contains(openedFrom)) {
-      openedFrom.focus();
+    // The case study may have moved to another project while the viewer
+    // was open, so only return focus if the button is still on the page
+    if (lightboxOpener && document.body.contains(lightboxOpener)) {
+      lightboxOpener.focus();
     }
-    openedFrom = null;
+    lightboxOpener = null;
+  });
+
+  // Stepping to another case study underneath would leave a stale picture
+  dialog.addEventListener('close', function () {
+    if (lightbox.open) {
+      lightbox.close();
+    }
   });
 })();

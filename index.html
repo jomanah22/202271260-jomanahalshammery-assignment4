@@ -91,7 +91,7 @@
         <div class="section-title reveal">
           <span class="section-label">Portfolio</span>
           <h2>Projects</h2>
-          <p>Projects from my Integrated Design studies at KFUPM: game design and character animation from ITD 212, the UniDine research poster, then branding and 3D work from my ITD 211 design journal. Filter by tool, sort the list or search. The page remembers your filter and sort for next time.</p>
+          <p>Projects from my Integrated Design studies at KFUPM: game design and character animation from ITD 212, the UniDine research poster, then branding and 3D work from my ITD 211 design journal. Open any piece for the full case study: the images, the process and the reflection. Use the arrow keys to move between them.</p>
         </div>
 
         <div class="project-toolbar reveal">
@@ -115,7 +115,7 @@
           <button type="button" class="text-button" id="project-clear" hidden>Clear filters</button>
         </div>
 
-        <div id="project-list" class="project-grid project-list" aria-live="polite"></div>
+        <div id="project-list" class="project-grid project-list"></div>
 
         <div class="empty-state" id="project-empty" hidden>
           <p><strong>No projects match that.</strong> Try a different word, or pick another filter.</p>
@@ -329,24 +329,31 @@
     </div>
   </footer>
 
-  <!-- ===== Project image viewer (opened from a project cover) ===== -->
-  <!-- Process & notes popup. Filled by script.js; opened with showModal() -->
-  <dialog class="notes" id="notes-dialog" aria-labelledby="notes-title">
-    <div class="notes-inner">
-      <button type="button" class="icon-btn notes-close" id="notes-close" aria-label="Close notes">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-      <span class="badge badge-accent" id="notes-kind"></span>
-      <h3 id="notes-title"></h3>
-      <p class="notes-summary" id="notes-summary"></p>
-      <h4>Process</h4>
-      <p id="notes-process"></p>
-      <h4>What I learned</h4>
-      <p id="notes-learning"></p>
-      <ul class="tags" id="notes-tags"></ul>
+  <!-- Case-study viewer. Filled by script.js; opened with showModal() -->
+  <dialog class="case" id="case-dialog" aria-labelledby="case-title">
+    <div class="case-inner">
+      <button type="button" class="icon-btn case-close" id="case-close" aria-label="Close case study"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="case-media" id="case-media"></div>
+      <div class="case-body">
+        <p class="project-meta" id="case-meta"></p>
+        <h2 id="case-title"></h2>
+        <p class="case-summary" id="case-summary"></p>
+        <dl class="case-details" id="case-details"></dl>
+        <h3>Process</h3>
+        <p id="case-process"></p>
+        <h3>What I learned</h3>
+        <p id="case-learning"></p>
+        <ul class="tags" id="case-tags"></ul>
+        <div class="case-nav">
+          <button type="button" class="btn btn-outline" id="case-prev">&larr; Previous</button>
+          <span class="case-position" id="case-position"></span>
+          <button type="button" class="btn btn-outline" id="case-next">Next &rarr;</button>
+        </div>
+      </div>
     </div>
   </dialog>
 
+  <!-- Image viewer: stacks on top of the case study when a picture is clicked -->
   <dialog class="lightbox" id="lightbox" aria-label="Project image viewer">
     <div class="lightbox-inner">
       <button type="button" class="icon-btn lightbox-close" id="lightbox-close" aria-label="Close image viewer">

@@ -12,8 +12,9 @@
    10. Contact
    11. Footer
    12. Responsive
-   13. Project controls, notes popup, form feedback, reveal
+   13. Project controls, form feedback, reveal
    14. Sort control, in-class exercises, weather line
+   15. Case-study dialog, copy button, print
    ========================================================================== */
 
 /* Montserrat is served from this repository (assets/fonts) so the page makes
@@ -948,6 +949,12 @@ h3 {
 }
 
 /* Small label used in the case-study dialog and cards */
+.project-meta {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
 
 .field-hint {
   font-size: 0.85rem;
@@ -955,7 +962,7 @@ h3 {
 }
 
 /* --------------------------------------------------------------------------
-   13. Project controls, notes popup and form feedback
+   13. Project controls and form feedback
    -------------------------------------------------------------------------- */
 .visually-hidden {
   position: absolute;
@@ -1407,6 +1414,194 @@ h3 {
   transform: scaleX(1);
 }
 
+/* The cover and the title both open the case study */
+button.project-media {
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+button.project-media:focus-visible {
+  outline-offset: 4px;
+}
+
+.title-button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s var(--ease);
+}
+
+.title-button:hover {
+  color: var(--accent);
+}
+
+.details-toggle:hover svg {
+  transform: translateX(3px);
+}
+
+/* Case-study dialog ------------------------------------------------ */
+.case {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 100%;
+  color: var(--text);
+}
+
+.case::backdrop {
+  background-color: rgba(20, 18, 14, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.case[open] {
+  display: grid;
+  place-items: center;
+  animation: fade 0.25s var(--ease) both;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.case-inner {
+  position: relative;
+  width: min(100% - 2rem, 1100px);
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  animation: rise 0.35s var(--ease) both;
+}
+
+.case-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+}
+
+.case-media {
+  background-color: var(--surface-2);
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.case-poster {
+  width: 100%;
+  height: auto;
+  box-shadow: var(--shadow);
+}
+
+.case-gallery {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.case-gallery img,
+.case-cover {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.case-body {
+  padding: 2.5rem 3.5rem 2rem 2.5rem;
+  min-width: 0;
+}
+
+.case-body h2 {
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  margin: 0.5rem 0 1rem;
+}
+
+.case-summary {
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.case-details {
+  margin: 0 0 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.case-details div {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+}
+
+.case-details dt {
+  color: var(--text-muted);
+}
+
+.case-details dd {
+  margin: 0;
+}
+
+.case-body h3 {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 1.25rem 0 0.35rem;
+}
+
+.case-body p {
+  max-width: 60ch;
+}
+
+.case-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.case-nav .btn[disabled] {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+.case-position {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+body.has-dialog {
+  overflow: hidden;
+}
+
 @media (max-width: 768px) {
   .project-toolbar {
     gap: 0.9rem;
@@ -1441,89 +1636,36 @@ h3 {
   }
 }
 
+@media (max-width: 768px) {
+  .case-inner {
+    grid-template-columns: 1fr;
+    width: min(100% - 1rem, 1100px);
+    max-height: calc(100vh - 1rem);
+    max-height: calc(100dvh - 1rem);
+  }
+
+  .case-media {
+    padding: 1rem;
+  }
+
+  .case-body {
+    padding: 1.5rem 1.25rem 1.5rem;
+  }
+
+  .case-details div {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+
+  .case-nav {
+    flex-wrap: wrap;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;
     transform: none;
-  }
-}
-
-/* "Process & notes" popup ------------------------------------------------ */
-.notes {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  max-width: none;
-  max-height: none;
-  width: 100%;
-  height: 100%;
-  color: var(--text);
-}
-
-.notes::backdrop {
-  background-color: rgba(0, 0, 0, 0.55);
-}
-
-.notes[open] {
-  display: grid;
-  place-items: center;
-  animation: rise 0.25s var(--ease) both;
-}
-
-.notes-inner {
-  position: relative;
-  width: min(100% - 2rem, 680px);
-  max-height: calc(100vh - 2rem);
-  max-height: calc(100dvh - 2rem);
-  overflow-y: auto;
-  background-color: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 2.25rem 2.5rem 2.25rem;
-}
-
-.notes-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-}
-
-.notes-inner h3 {
-  font-size: 1.35rem;
-  margin: 0.5rem 3rem 0.75rem 0;
-}
-
-.notes-summary {
-  color: var(--text-muted);
-  margin-bottom: 1.25rem;
-}
-
-.notes-inner h4 {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin: 1.25rem 0 0.35rem;
-}
-
-.notes-inner p {
-  font-size: 0.95rem;
-}
-
-.notes-inner .tags {
-  margin-top: 1.5rem;
-}
-
-body.has-notes {
-  overflow: hidden;
-}
-
-@media (max-width: 768px) {
-  .notes-inner {
-    width: min(100% - 1rem, 680px);
-    padding: 1.75rem 1.25rem 1.5rem;
   }
 }
 
@@ -1543,20 +1685,27 @@ body.has-notes {
 
 /* ==========================================================================
    Project image viewer (lightbox)
-   A project cover is a <button>, so it can be opened with the keyboard, and
-   the picture is shown in a native <dialog>. showModal() gives the backdrop,
-   the focus trap and Escape-to-close without extra script.
+   The case study already opens in a <dialog>; clicking any picture inside it
+   stacks a second one on top showing that picture at full size.
    ========================================================================== */
-button.project-media {
+/* Each picture in the case study is a button that opens the viewer */
+.case-media-button {
   display: block;
   width: 100%;
   padding: 0;
   border: 0;
+  background: none;
   cursor: zoom-in;
 }
 
-button.project-media:focus-visible {
+.case-media-button:focus-visible {
   outline-offset: 4px;
+}
+
+.case-media-button img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .lightbox {
@@ -1622,6 +1771,7 @@ button.project-media:focus-visible {
   border-radius: var(--radius);
   background-color: var(--surface-2);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  cursor: default;
 }
 
 .lightbox-caption {
@@ -1656,11 +1806,6 @@ button.project-media:focus-visible {
 /* .icon-btn sets a display, so [hidden] needs saying again to win */
 .lightbox-arrow[hidden] {
   display: none;
-}
-
-/* Locks the page behind the viewer so only the picture scrolls into view */
-body.has-lightbox {
-  overflow: hidden;
 }
 
 @media (max-width: 720px) {
