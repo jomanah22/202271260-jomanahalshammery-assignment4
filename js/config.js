@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Site configuration (Assignment 3)
+   Site configuration (Assignment 4)
    Values that are specific to me and may change. Nothing here is secret;
    the weather API used by the site is public and needs no key.
    ========================================================================== */

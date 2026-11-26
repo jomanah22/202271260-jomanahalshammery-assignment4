@@ -1,15 +1,15 @@
 /* ==========================================================================
-   Jomanah Alshammary — portfolio scripts (Assignment 3)
-   1. State (remembered in localStorage)
+   Jomanah Alshammary — portfolio scripts (Assignment 4)
+   1. State (remembered in localStorage) + fetch/cache helpers
    2. Theme toggle
-   3. Mobile navigation
-   4. Projects: filter + sort + search, notes popup
-   5. In-class exercises: show/hide section
-   6. Live weather and local time (Open-Meteo)
-   7. Contact form: topic-aware, multi-step validation, saved draft
-   8. Scroll reveal
-   9. Footer year
-   10. Project image viewer (lightbox)
+   3. Navigation: mobile menu, current-section highlight
+   4. Work: filter + sort + search
+   5. Case-study viewer (<dialog>, keyboard navigation, shareable #work/id)
+   6. In-class exercises
+   7. Live weather and local time (Open-Meteo)
+   8. Contact: copy email, topic-aware form, saved draft
+   9. Scroll reveal, footer year
+   10. Image viewer (lightbox stacked on the case study)
    ========================================================================== */
 
 (function () {
@@ -18,12 +18,7 @@
   var root = document.documentElement;
 
   /* ------------------------------------------------------------------
-     1. State
-     Everything the page remembers between visits lives in one object
-     and one localStorage key. Reading and writing go through these two
-     helpers so the rest of the code never touches storage directly.
-     (The theme keeps its own key because the inline <head> script reads
-     it before this file loads; the form draft has its own key too.)
+     1. State and helpers
      ------------------------------------------------------------------ */
   var STATE_KEY = 'portfolio-state';
   var defaults = { filter: 'All', sort: 'course', logOpen: false };
@@ -31,8 +26,7 @@
 
   function loadState() {
     try {
-      var saved = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
-      return Object.assign({}, defaults, saved);
+      return Object.assign({}, defaults, JSON.parse(localStorage.getItem(STATE_KEY) || '{}'));
     } catch (error) {
       return Object.assign({}, defaults);
     }
@@ -42,13 +36,9 @@
     Object.assign(state, patch);
     try {
       localStorage.setItem(STATE_KEY, JSON.stringify(state));
-    } catch (error) {
-      /* Storage can be unavailable (private mode, quota). The page still
-         works; it just won't remember choices. */
-    }
+    } catch (error) { /* storage unavailable: the page still works */ }
   }
 
-  /* Small cache for API responses so a reload doesn't refetch immediately */
   function cacheGet(key) {
     try {
       var entry = JSON.parse(sessionStorage.getItem(key) || 'null');
@@ -65,8 +55,6 @@
     } catch (error) { /* ignore */ }
   }
 
-  /* fetch() with a timeout so a hanging request can't leave "Loading…"
-     on screen forever */
   function fetchJson(url, timeoutMs) {
     var controller = new AbortController();
     var timer = setTimeout(function () { controller.abort(); }, timeoutMs || 8000);
@@ -94,23 +82,21 @@
   var themeToggle = document.getElementById('theme-toggle');
 
   function currentTheme() {
-    var explicit = root.getAttribute('data-theme');
-    if (explicit) {
-      return explicit;
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return root.getAttribute('data-theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   }
 
-  function applyTheme(theme) {
-    root.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-    themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  function labelThemeButton() {
+    themeToggle.setAttribute('aria-label', currentTheme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
   }
 
   themeToggle.addEventListener('click', function () {
-    applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+    var next = currentTheme() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    labelThemeButton();
   });
-  themeToggle.setAttribute('aria-label', currentTheme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  labelThemeButton();
 
   /* ------------------------------------------------------------------
      3. Navigation
@@ -169,10 +155,7 @@
   }
 
   /* ------------------------------------------------------------------
-     4. Projects
-     Filter (chip) → search (text) → sort (select), in that order.
-     Filter and sort are remembered in state; the search box is not,
-     because a remembered search is confusing on the next visit.
+     4. Work list
      ------------------------------------------------------------------ */
   var projectList = document.getElementById('project-list');
   var filterBar = document.getElementById('project-filters');
@@ -184,7 +167,6 @@
   var query = '';
   var visible = []; // the projects currently shown, in display order
 
-  // Guard against a remembered filter/sort that no longer exists in data
   if (['All'].concat(PROJECT_FILTERS).indexOf(state.filter) === -1) {
     setState({ filter: 'All' });
   }
@@ -240,22 +222,19 @@
 
   function visibleProjects() {
     var sort = PROJECT_SORTS.filter(function (s) { return s.id === state.sort; })[0];
-
     return PROJECTS
       .filter(function (project) {
-        // Step 1: chip filter
         if (state.filter !== 'All' && project.tags.indexOf(state.filter) === -1) {
           return false;
         }
-        // Step 2: free-text search across the visible fields
         if (!query) {
           return true;
         }
         var haystack = [project.title, project.summary, project.kind].concat(project.tags).join(' ').toLowerCase();
         return haystack.indexOf(query) !== -1;
       })
-      .slice() // copy before sorting so PROJECTS itself keeps course order
-      .sort(sort.compare); // Step 3: order the survivors
+      .slice()
+      .sort(sort.compare);
   }
 
   function renderProjects() {
@@ -494,8 +473,8 @@
      ------------------------------------------------------------------ */
   var nowLine = document.getElementById('now-line');
   var loc = CONFIG.location;
+  var weatherText = null; // null = loading, '' = failed
 
-  // WMO weather interpretation codes → short descriptions
   function describeWeather(code, isDay) {
     if (code === 0) { return isDay ? 'clear skies' : 'a clear night'; }
     if (code === 1) { return 'mostly clear'; }
@@ -510,14 +489,9 @@
     return 'changeable weather';
   }
 
-  function localTime() {
-    return new Intl.DateTimeFormat('en', { hour: 'numeric', minute: '2-digit', timeZone: loc.timezone }).format(new Date());
-  }
-
-  var weatherText = null; // null = not loaded yet, '' = failed
-
   function renderNow() {
-    var text = 'It’s ' + localTime() + ' in ' + loc.name;
+    var time = new Intl.DateTimeFormat('en', { hour: 'numeric', minute: '2-digit', timeZone: loc.timezone }).format(new Date());
+    var text = 'It’s ' + time + ' in ' + loc.name;
     if (weatherText === null) {
       text += ' — checking the weather…';
     } else if (weatherText) {
@@ -537,16 +511,13 @@
     }
     var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + loc.latitude + '&longitude=' + loc.longitude +
       '&current=temperature_2m,weather_code,is_day&timezone=' + encodeURIComponent(loc.timezone);
-
     fetchJson(url)
       .then(function (data) {
         var c = data.current;
         weatherText = Math.round(c.temperature_2m) + '° and ' + describeWeather(c.weather_code, c.is_day === 1);
         cacheSet('weather', weatherText);
       })
-      .catch(function () {
-        weatherText = '';
-      })
+      .catch(function () { weatherText = ''; })
       .then(renderNow);
   }
 
@@ -610,6 +581,13 @@
     }
   };
 
+  var REQUIRED_MESSAGES = {
+    name: 'Please tell me your name.',
+    email: 'Please add your email so I can reply.',
+    topic: 'Please choose what this is about.',
+    message: 'Please write a short message.'
+  };
+
   function updateTopicHint() {
     var topic = TOPICS[form.elements.topic.value];
     messageHint.textContent = topic ? topic.hint : 'Pick a topic above and I’ll suggest what to include.';
@@ -618,28 +596,17 @@
 
   function setFieldError(name, message) {
     var input = form.elements[name];
-    var error = document.getElementById(name + '-error');
     input.setAttribute('aria-invalid', message ? 'true' : 'false');
     input.closest('.field').classList.toggle('has-error', Boolean(message));
-    error.textContent = message;
+    document.getElementById(name + '-error').textContent = message;
   }
-
-  var REQUIRED_MESSAGES = {
-    name: 'Please tell me your name.',
-    email: 'Please add your email so I can reply.',
-    topic: 'Please choose what this is about.',
-    message: 'Please write a short message.'
-  };
 
   function validateField(name) {
     var value = form.elements[name].value.trim();
-
-    // Step 1: presence
     if (!value) {
       setFieldError(name, REQUIRED_MESSAGES[name]);
       return false;
     }
-    // Step 2: shape
     if (name === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       setFieldError(name, 'That doesn’t look like a complete email address.');
       return false;
@@ -701,7 +668,6 @@
 
   form.addEventListener('submit', function (event) {
     event.preventDefault();
-
     var allValid = fields.map(validateField).every(Boolean);
     status.className = 'form-status';
 
@@ -714,7 +680,6 @@
 
     var name = form.elements.name.value.trim();
     var topic = TOPICS[form.elements.topic.value];
-
     status.textContent = 'Thanks, ' + name + '. ' + topic.reply + ' Your message has been noted.';
     status.classList.add('is-success', 'is-shown');
 
@@ -731,15 +696,15 @@
   var revealItems = document.querySelectorAll('.reveal');
 
   if ('IntersectionObserver' in window) {
-    var observer = new IntersectionObserver(function (entries) {
+    var revealObserver = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting || entry.boundingClientRect.bottom < 0) {
           entry.target.classList.add('is-visible');
-          observer.unobserve(entry.target);
+          revealObserver.unobserve(entry.target);
         }
       });
     }, { threshold: 0.12 });
-    revealItems.forEach(function (item) { observer.observe(item); });
+    revealItems.forEach(function (item) { revealObserver.observe(item); });
 
     // Safety net for jumps (anchor links, restored scroll position): anything
     // already above the fold is shown without waiting for the observer
