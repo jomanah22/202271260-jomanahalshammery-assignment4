@@ -1602,6 +1602,87 @@ body.has-dialog {
   overflow: hidden;
 }
 
+/* Contact: copy button ------------------------------------------- */
+.contact-value {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.copy-button {
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background-color: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease), background-color 0.2s var(--ease);
+}
+
+.copy-button:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+.copy-button.is-done {
+  border-color: var(--accent);
+  color: var(--accent);
+  background-color: var(--accent-soft);
+}
+
+/* Print: a clean, one-column résumé view -------------------------- */
+@media print {
+  :root {
+    --bg: #fff;
+    --surface: #fff;
+    --surface-2: #f2f2f2;
+    --text: #000;
+    --text-muted: #444;
+    --line: #ccc;
+    --accent: #000;
+  }
+
+  .header,
+  .project-toolbar,
+  .project-status,
+  .details-toggle,
+  .project-media,
+  #practice,
+  .contact-form,
+  .now-line,
+  .copy-button,
+  .case,
+  .lightbox,
+  .footer .social-links {
+    display: none !important;
+  }
+
+  .section,
+  .hero {
+    padding: 1.5rem 0;
+    border: 0;
+    break-inside: avoid;
+  }
+
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .project {
+    grid-template-columns: 1fr;
+    padding: 1rem 0;
+  }
+
+  body {
+    font-size: 11pt;
+  }
+}
+
 @media (max-width: 768px) {
   .project-toolbar {
     gap: 0.9rem;

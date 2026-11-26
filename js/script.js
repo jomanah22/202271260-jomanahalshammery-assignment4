@@ -558,6 +558,32 @@
   /* ------------------------------------------------------------------
      8. Contact
      ------------------------------------------------------------------ */
+
+  // Copy email with a short confirmation on the button itself
+  var copyButton = document.getElementById('copy-email');
+  copyButton.addEventListener('click', function () {
+    var value = copyButton.dataset.copy;
+    var done = function (ok) {
+      copyButton.textContent = ok ? 'Copied' : 'Press Ctrl+C';
+      copyButton.classList.toggle('is-done', ok);
+      setTimeout(function () {
+        copyButton.textContent = 'Copy';
+        copyButton.classList.remove('is-done');
+      }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(value).then(function () { done(true); }, function () { done(false); });
+    } else {
+      // Older browsers: select the address so the visitor can copy it
+      var range = document.createRange();
+      range.selectNodeContents(document.getElementById('email-link'));
+      var selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      done(false);
+    }
+  });
+
   var form = document.getElementById('contact-form');
   var status = document.getElementById('form-status');
   var draftNote = document.getElementById('form-draft');
