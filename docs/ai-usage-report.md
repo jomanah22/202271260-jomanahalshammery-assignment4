@@ -11,6 +11,8 @@
 - **Student ID:** 202271260
 - **Course:** SWE 363 – Web Engineering
 - **Repository Link:** [https://github.com/jomanah22/202271260-jomanahalshammery-assignment4](https://github.com/jomanah22/202271260-jomanahalshammery-assignment4)
+  
+  
 
 ## 1. High-Level AI Usage Log
 
@@ -28,7 +30,7 @@
 
 ## 2. Commit-by-Commit AI Assistance Details
 
-Below is the complete audit of each commit for Assignment 4, documenting whether AI assisted, what the AI provided, what human changes were made, and the corresponding entries in the AI evidence log. 
+Below is the complete audit of each commit for Assignment 4, documenting whether AI assisted, what the AI provided, what human changes were made, and the corresponding entries in the AI evidence log.
 
 ### Commit 1: `commit-1-start-from-assignment-3`
 

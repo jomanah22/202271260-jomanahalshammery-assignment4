@@ -1,124 +1,156 @@
-# Technical Documentation – Assignment 3
+# Technical Documentation – Assignment 4
 
-## Overview
+## 1. Overview
 
-A static single-page site with client-side data fetching and saved UI state. No build tools,
-no libraries.
+A static single-page web application. No build step and no runtime dependencies; the only
+outside service is the Open-Meteo weather API.
 
 ```
-index.html        markup; three deferred scripts in <head>
-css/styles.css    tokens, base, components, sections, controls, exercises, weather line, responsive
+index.html        markup: header, seven sections, footer, two <dialog> elements
+css/styles.css    tokens, base, components, sections, controls, exercises, dialog, print, motion
 js/config.js      CONFIG: location for the weather line, cache duration
 js/data.js        PROJECTS, PROJECT_FILTERS, PROJECT_SORTS, EXERCISES
 js/script.js      behaviour in one function, ten numbered parts
-assets/images/    20 JPEGs, no wider than 1200 px, about 2.2 MB
-assets/fonts/     Montserrat variable font
+assets/           CV (.docx), Montserrat font, 31 JPEG images (about 4.1 MB)
+presentation/     slides (HTML and PDF), demo script
 ```
 
-Load order matters: `config.js`, then `data.js`, then `script.js`, all with `defer`, so they
-run in order after the document is parsed without blocking rendering.
+Scripts load with `defer` in the order config, data, script.
 
-## State
+## 2. Data model
 
 ```js
-var STATE_KEY = 'portfolio-state';
-var defaults  = { filter: 'All', sort: 'course', logOpen: false };
-var state     = loadState();          // defaults merged with the saved JSON
-setState({ sort: 'kind' });           // change and save in one call
+// PROJECTS[n]
+{
+  id, sequence, title, kind, year, tags: [],
+  image,                        // 4:3 cover for the card
+  poster | gallery: [],         // a journal page, or several images, for the case study
+  summary, process, learning,
+  details: [[label, value], …]  // shown as a definition list in the case study
+}
+// EXERCISES[n]: { title, tools: [], objective, brief, learning, images: [] }
+// PROJECT_SORTS[n]: { id, label, compare(a, b) }
 ```
 
-- `loadState()` catches parse errors and falls back to the defaults.
-- `setState()` merges a patch and writes the whole object. Storage failures are ignored so the
-  page still works without persistence.
-- After loading, the saved `filter` and `sort` are checked against `PROJECT_FILTERS` and
-  `PROJECT_SORTS` and reset if they are no longer valid.
-- Two other keys are deliberately separate: `theme` (read by the inline head script before
-  `script.js` exists) and `contact-draft` (form text, cleared on submit).
+Adding a piece of work is a data change only. A new tool becomes a filter button when it is
+added to `PROJECT_FILTERS`.
 
-Helpers used by the API call:
+## 3. State
 
-- `cacheGet(key)` and `cacheSet(key, data)`: `sessionStorage` with a timestamp; entries expire
-  after `CONFIG.cacheMinutes`.
-- `fetchJson(url, timeoutMs)`: `fetch` with an `AbortController` timeout (8 seconds by
-  default); throws on a non-2xx response; returns parsed JSON.
+| Key (localStorage) | Content | Written by |
+| --- | --- | --- |
+| `theme` | `'light'` or `'dark'` | the inline head script reads it; the theme button writes it |
+| `portfolio-state` | `{ filter, sort, logOpen }` | `setState()` only |
+| `contact-draft` | `{ name, email, topic, message }` | debounced form input; cleared on submit |
 
-## Project pipeline
+`sessionStorage` holds the weather response with a timestamp, expiring after
+`CONFIG.cacheMinutes`.
 
-```
-PROJECTS
-  .filter(tag filter)            state.filter === 'All' or the tags include it
-  .filter(text search)           query in title, summary, kind or tags
-  .slice().sort(sort.compare)    comparator from PROJECT_SORTS[state.sort]
-```
+The URL hash is also state: `#work/<id>` while a case study is open, `#projects` after it
+closes. It is written with `history.replaceState`, so opening and closing case studies does not
+add history entries.
 
-`PROJECT_SORTS` holds `{ id, label, compare }` objects and the `<select>` options are built
-from it. "Journal order" sorts by `sequence`; "Projects first" sorts by kind and then sequence.
-Filter and sort are saved in `state`; the search text is not. `syncControls()` keeps the
-filter buttons (`aria-pressed`) and the select in step with `state`. Rendering, the empty
-state, the counter and the notes popup work as in the previous version.
+## 4. Behaviour by part (script.js)
 
-## In-class exercises
+1. State and helpers: `loadState`, `setState`, `cacheGet` / `cacheSet`, `fetchJson`
+   (8-second `AbortController` timeout, throws on non-2xx), `escapeHtml`.
+2. Theme: toggles `data-theme` on `<html>`, saves it, updates the button label.
+3. Navigation: mobile menu (`is-open`, `aria-expanded`, Escape); an `IntersectionObserver`
+   with a narrow root margin marks the section in the middle of the viewport and sets
+   `is-current` / `aria-current` on its nav link.
+4. Work list: filter buttons and sort options are generated from data; `visibleProjects()`
+   runs filter → search → `slice().sort()`; `renderProjects()` writes the cards, the counter and
+   the empty state, and keeps `visible` (the current display order) for the dialog.
+5. Case-study viewer: see section 5.
+6. In-class exercises: `<details>` entries from `EXERCISES`; `state.logOpen` toggles the list.
+7. Weather and time: Open-Meteo current conditions mapped from WMO codes; an
+   `Intl.DateTimeFormat` clock in `Asia/Riyadh` re-rendered every minute; three text states
+   (loading, loaded, failed).
+8. Contact: copy-email button (Clipboard API with a text-selection fallback); a topic map that
+   drives the hint and the confirmation; two-step validation with `aria-invalid` and focus on
+   the first error; draft save and restore.
+9. Reveal and year: `reveal` elements become visible on intersection, or immediately if they are
+   already above the viewport, with a scroll listener as a safety net.
+10. Image viewer: a second `<dialog>` that opens a cover or a case-study image full size, with
+    previous / next and arrow keys. It can open on top of the case study; Escape closes only the
+    picture.
 
-`EXERCISES` is rendered into `#log-list` as `<details>` elements: number, title and tools in
-the `<summary>`; objective, brief and process, reflection and a lazy-loaded image grid in the
-body. `state.logOpen` controls the `hidden` attribute on the list and the label and
-`aria-expanded` of the toggle button. Native `<details>` gives keyboard and screen-reader
-support without extra code.
+## 5. Case-study viewer
 
-## Weather and local time (Open-Meteo)
+One `<dialog class="case" aria-labelledby="case-title">` at the end of `<body>` with a close
+button, a media column and a text column.
 
-```
-GET https://api.open-meteo.com/v1/forecast
-    ?latitude=26.2172&longitude=50.1971
-    &current=temperature_2m,weather_code,is_day&timezone=Asia/Riyadh
-```
+| Concern | Implementation |
+| --- | --- |
+| Open | Any element with `data-open="<id>"` in the list (cover button, title button, *View case study*). `openCase(id, trigger)` fills the dialog, calls `showModal()`, adds `body.has-dialog` to lock scrolling and sets the hash. |
+| Fill | `fillCase()` swaps the media (a journal page or a gallery), the text, the details list and the tags, and works out the position within `visible`. Previous / Next are disabled at the ends. |
+| Navigate | Buttons and ← → call `stepCase(±1)`, following the current filter and sort order. |
+| Close | Escape, the close button, or a click on the backdrop. The `close` event clears the body class, resets the hash to `#projects` and returns focus to the trigger, or to the first title button if the trigger was re-rendered. |
+| Deep link | `openFromHash()` runs on load and on `hashchange`; `#work/<id>` opens that project, any other hash closes an open dialog. |
+| Accessibility | `showModal()` traps focus and exposes the dialog as modal; `aria-labelledby` names it; images have descriptive `alt` text; buttons have labels. |
 
-- `renderNow()` builds the sentence from `Intl.DateTimeFormat` (hour and minute in the
-  configured time zone) plus `weatherText`, which is `null` while loading, a string when
-  loaded, or `''` when the request failed. The three cases read "checking the weather…",
-  "38° and clear skies", and "Weather is unavailable right now".
-- `describeWeather(code, isDay)` maps the WMO weather codes to short phrases.
-- The clock re-renders every minute; the weather is requested once and cached for ten minutes.
+Layout: `.case-inner` is a two-column grid (media / text) that scrolls inside a
+`100dvh` box; under 768 px it becomes one column with the media on top.
 
-## Contact form
+## 6. CSS structure
 
-Fields: name, email, topic (`<select>`), message.
+1. `@font-face` for the local Montserrat file.
+2. Variables on `:root`, `[data-theme="dark"]` and the `prefers-color-scheme` fallback, with
+   `color-scheme` per theme so native controls match.
+3. Base, typography, `[hidden] { display: none !important }`.
+4. Components: buttons, icon buttons, cards, badges, tags.
+5. Sections: header and navigation, hero, portfolio, skills, background, certificates, contact,
+   footer.
+6. Controls: filter buttons, search, sort select, counter, empty state, form feedback, reveal.
+7. Exercises list, weather line, case-study dialog, skip link, current nav item, copy button,
+   image viewer.
+8. Responsive rules at 992 px, 768 px and 480 px.
+9. Print: black on white, chrome and forms hidden, `break-inside: avoid` per section.
+10. Reduced motion.
 
-1. Presence: every field must have a value (a specific message per field).
-2. Shape: the email must match `name@domain.tld`; the message needs at least 10 characters.
-3. Only when everything passes: a confirmation built from the name and the topic's reply text.
+## 7. Performance
 
-The `TOPICS` map also supplies the hint shown under the message box, updated on `change`.
-Fields validate on blur and all together on submit; focus moves to the first invalid field.
-Drafts of all four fields are saved to `localStorage` 400 ms after typing stops and restored
-on load.
-
-## Other parts
-
-Theme toggle, mobile navigation, typed tagline, scroll reveal and the image viewer are the
-same as in the previous version.
-
-## Performance
-
-- 20 images, about 2.2 MB in total, all resized JPEGs with `width`/`height` attributes and
-  `aspect-ratio`; every image is `loading="lazy"`.
-- The font is served from `assets/fonts` (one 38 KB file), so the page makes no requests to
-  third-party servers apart from the weather API.
-- Scripts are deferred; the JavaScript is about 30 KB unminified with no dependencies.
+- 31 images, about 4.1 MB, resized JPEGs with `width` / `height` and `aspect-ratio`;
+  everything is `loading="lazy"`; case-study images load only when a case study opens.
+- Font served locally (one 38 KB file). No third-party scripts or stylesheets.
+- Scripts deferred; the JavaScript is about 35 KB unminified with no dependencies.
 - The weather response is cached in `sessionStorage`; the clock updates once a minute.
-- The stylesheet was audited against the markup and scripts and contains no unused rules.
+- The stylesheet was audited against the markup and scripts; duplicate and unused rules were
+  removed.
 
-## Testing
+## 8. Browser support
 
-Chrome at 1440, 820 and 390 px in both themes: no console errors, no horizontal overflow, all
-images load, all in-page links resolve. Interactions: each sort order alone and combined with a
-filter; filter and sort remembered across a reload; *Clear filters* keeps the sort; exercises
-open and close, expand an entry, state remembered; the weather line with live data and with the
-network offline; topic hint changes; presence and shape errors; focus management; success
-message per topic; draft restore.
+Current Chrome, Edge, Firefox and Safari. Uses `<dialog>`, `aspect-ratio`, `dvh` units and
+CSS custom properties, all supported in browsers released since 2023. Without JavaScript the
+page still shows the hero, background, skills, certificates and contact details; the list,
+exercises, dialogs and weather line need scripts.
 
-## Known limitations
+## 9. User guide
 
-- The form has no backend; submissions are acknowledged but not sent.
-- The weather is for a fixed location from `CONFIG`; the site does not ask for the visitor's
-  location.
+**Navigation.** The header links jump to each section and the current one is highlighted. On
+phones the ☰ button opens the menu; choosing a link or pressing Escape closes it. The sun /
+moon button switches theme and the site remembers your choice.
+
+**Projects.** The filter buttons narrow by tool, the menu sorts (Journal order, Title A–Z,
+Title Z–A, Projects first) and the search box filters as you type. The counter shows how many
+match; *Clear filters* resets the filters and keeps your sort.
+
+**Case studies.** Click a cover, a title or *View case study*. Inside, scroll the images, read
+the details, use ← → or the buttons to move to the previous or next project in the current
+order, and press Escape or click outside to close. Click an image to see it full size. The
+address bar holds a link to the open case study that you can share.
+
+**Exercises.** *Show all 6 exercises* reveals the list; click an entry to open its notes and
+screenshots. The list stays open on your next visit if you left it open.
+
+**Contact.** *Copy* puts the email address on your clipboard. In the form, choose a topic to
+get a hint about what to include; fields are checked when you leave them and when you submit;
+your text is saved as a draft while you type and restored if you reload. The *CV* link
+downloads the Word document. Printing the page produces a résumé-style layout.
+
+## 10. Known limitations
+
+- The form acknowledges messages but does not send them (no backend in scope).
+- The weather line is for a fixed location from `CONFIG`.
+- Case-study media are images from my posters and journal; the original animations are not
+  embedded.
