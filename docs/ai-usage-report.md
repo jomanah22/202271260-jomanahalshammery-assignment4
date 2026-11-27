@@ -1,4 +1,4 @@
-# AI Usage Report – Assignment 3
+# AI Usage Report – Assignment 4
 
 ## Signed Declaration
 
@@ -10,112 +10,103 @@
 - **Student Name:** Jomanah Alshammary
 - **Student ID:** 202271260
 - **Course:** SWE 363 – Web Engineering
-- **Repository Link:** [https://github.com/jomanah22/202271260-jomanahalshammery-assignment3](https://github.com/jomanah22/202271260-jomanahalshammery-assignment3)
+- **Repository Link:** [https://github.com/jomanah22/202271260-jomanahalshammery-assignment4](https://github.com/jomanah22/202271260-jomanahalshammery-assignment4)
 
 ## 1. High-Level AI Usage Log
 
-| Tool       | Date       | Purpose                                                     | Files Affected                                               | What You Changed                                                                                                                                                                 |
-|:---------- |:---------- |:----------------------------------------------------------- |:------------------------------------------------------------ |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Claude** | 2026-11-10 | Script loading order and a separate configuration file      | `index.html`, `js/config.js`                                 | Moved the script tags into the head with `defer` in the order config → data → script; wrote the `CONFIG` values (Khobar coordinates, `Asia/Riyadh`, ten-minute cache) myself.    |
-| **Claude** | 2026-11-11 | One saved state object instead of separate variables        | `js/script.js`                                               | Adopted `loadState()` / `setState()` with a single `localStorage` key; kept the theme and the form draft under their own keys; wrapped storage access in `try / catch`.          |
-| **Claude** | 2026-11-12 | Sort orders as data and the filter → search → sort pipeline | `js/data.js`, `js/script.js`, `index.html`, `css/styles.css` | Added `sequence` and `PROJECT_SORTS` with comparators; wrote `visibleProjects()` with `slice()` before `sort()`; chose not to persist the search text; styled the native select. |
-| **Claude** | 2026-11-13 | Topic-aware contact form and two-step validation            | `index.html`, `js/script.js`, `css/styles.css`               | Added the `TOPICS` map and `REQUIRED_MESSAGES`; wrote every hint, reply and error message in my own words; linked the hint to the textarea with `aria-describedby`.              |
-| **Claude** | 2026-11-14 | Live weather and local time from a public API               | `js/script.js`, `index.html`, `css/styles.css`               | Chose Open-Meteo; kept `fetchJson()` with an `AbortController` timeout and a `sessionStorage` cache; wrote `describeWeather()` from the WMO code table; three text states.       |
-| **Claude** | 2026-11-15 | In-class exercises rendered as `<details>` entries          | `js/data.js`, `js/script.js`, `index.html`, `css/styles.css` | Entered the six exercises from my journal; `renderLog()` with `aria-expanded` / `aria-controls`; `logOpen` saved in state; wrote the list and phone styles.                      |
-| **Claude** | 2026-11-17 | Review pass for consistency                                 | `js/script.js`, `css/styles.css`, `js/data.js`, `index.html` | Shortened callbacks to one line, trimmed stale comments, added `decoding="async"`, updated the file headers.                                                                     |
-| **Claude** | 2026-11-18 | Structure of the documentation                              | `docs/ai-usage-report.md`, `docs/technical-documentation.md` | Used the suggested section outline; wrote all reflections and checked every technical claim against the code.                                                                    |
+| Tool       | Date       | Purpose                                                   | Files Affected                                                            | What You Changed                                                                                                                                                                           |
+|:---------- |:---------- |:--------------------------------------------------------- |:------------------------------------------------------------------------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Claude** | 2026-11-23 | Head metadata, favicon and a skip link                    | `index.html`, `css/styles.css`                                            | Added `theme-color` per colour scheme, Open Graph tags and an inline SVG favicon; wrote the description text; skip link that appears only on focus, `id="main"` on the landmark.           |
+| **Claude** | 2026-11-24 | Current-section highlight in the navigation               | `js/script.js`, `css/styles.css`                                          | `IntersectionObserver` with a narrow root margin sets `is-current` and `aria-current`; tuned the margin and reused the existing underline style.                                           |
+| **Claude** | 2026-11-25 | Case-study data model                                     | `js/data.js`                                                              | `poster` or `gallery` plus a `details` list of label/value pairs per project; wrote every value from my posters and journal pages.                                                         |
+| **Claude** | 2026-11-25 | Case-study viewer dialog, keyboard navigation, deep links | `index.html`, `js/script.js`, `css/styles.css`                            | Native `<dialog>` with `fillCase` / `openCase` / `stepCase`, `#work/<id>` via `replaceState`, `hashchange` listener; fixed two bugs found in testing; two-column layout; stacked lightbox. |
+| **Claude** | 2026-11-26 | Copy-email button and print stylesheet                    | `index.html`, `js/script.js`, `css/styles.css`                            | Clipboard API with a text-selection fallback and a short confirmation; print-only colour variables, hidden chrome and forms, `break-inside: avoid`.                                        |
+| **Claude** | 2026-11-26 | Review pass: unused code and consistency                  | `js/script.js`, `css/styles.css`, `js/config.js`, `js/data.js`            | Removed `localTime()`, `applyTheme()` and `body.has-lightbox`; `labelThemeButton()`; renamed the reveal observer; moved `REQUIRED_MESSAGES`; updated the headers.                          |
+| **Claude** | 2026-11-27 | Structure of the documentation                            | `docs/ai-usage-report.md`, `docs/technical-documentation.md`, `README.md` | Used the section outline and the user-guide table idea; wrote all reflections and checked every claim against the code.                                                                    |
 
 ---
 
 ## 2. Commit-by-Commit AI Assistance Details
 
-Below is the complete audit of each commit for Assignment 3, documenting whether AI assisted, what the AI provided, what human changes were made, and the corresponding entries in the AI evidence log.
+Below is the complete audit of each commit for Assignment 4, documenting whether AI assisted, what the AI provided, what human changes were made, and the corresponding entries in the AI evidence log. 
 
-### Commit 1: `commit-1-start-from-assignment-2`
+### Commit 1: `commit-1-start-from-assignment-3`
 
-- **Commit Message:** Start from the Assignment 2 portfolio
-- **Commit Description:** Assignment 2 site copied in unchanged as the starting point
+- **Commit Message:** Start from the Assignment 3 portfolio
+- **Commit Description:** Assignment 3 site copied in unchanged as the starting point
 - **AI Assisted:** No (Manual Implementation)
-- **Details:** Copied the Assignment 2 repository files into the Assignment 3 workspace to establish the clean baseline.
+- **Details:** Copied the Assignment 3 repository files into the Assignment 4 workspace to establish the clean baseline.
 
-### Commit 2: `commit-2-config-and-deferred-scripts`
+### Commit 2: `commit-2-head-metadata-and-skip-link`
 
-- **Commit Message:** Add a configuration file and defer the scripts
-- **Commit Description:** js/config.js with the weather location and cache time; script tags moved into the head with defer
+- **Commit Message:** Add head metadata, a favicon and a skip link
+- **Commit Description:** theme-color per colour scheme, Open Graph tags, inline SVG favicon, skip to content link with id on main
 - **AI Assisted:** Yes (Claude)
-- **What AI Suggested:** Loading the scripts from the `<head>` with `defer` so they run in order after parsing without blocking rendering, and keeping values that are specific to me (location, cache duration) in a separate `CONFIG` object.
-- **What I Changed:** Decided the load order (`config.js`, `data.js`, `script.js`), kept the inline theme script untouched so there is still no flash of the wrong theme, and wrote the configuration values myself with a comment that nothing in the file is secret.
+- **What AI Suggested:** Two `theme-color` meta tags keyed to `prefers-color-scheme`, the three Open Graph tags, a favicon as an SVG data URI so no extra file is requested, and the skip-link pattern (positioned off-screen until it receives focus).
+- **What I Changed:** Wrote the Open Graph description from my own project text, chose the colours and the initial for the icon, added `id="main"` so the link has a target, and styled the link with the existing design tokens.
 
-### Commit 3: `commit-3-state-module`
+### Commit 3: `commit-3-current-nav-link`
 
-- **Commit Message:** Add a single saved state object
-- **Commit Description:** loadState and setState helpers and one localStorage key, sections renumbered
+- **Commit Message:** Highlight the current section in the navigation
+- **Commit Description:** IntersectionObserver sets is-current and aria-current on the nav link
 - **AI Assisted:** Yes (Claude)
-- **What AI Suggested:** Replacing the separate variables I had started with (filter, sort, exercises toggle), each writing its own key, by one `state` object read through `loadState()` and written through `setState()` under a single key.
-- **What I Changed:** Kept `theme` as its own key because the inline head script reads it before `script.js` exists, kept `contact-draft` separate because it is cleared on submit, and added the `try / catch` so the page still works when storage is unavailable.
+- **What AI Suggested:** A second `IntersectionObserver` with a `rootMargin` that leaves only a thin band in the middle of the viewport, so exactly one section counts as current, and `aria-current="true"` on its link.
+- **What I Changed:** Tuned the margin to `-45% 0px -50% 0px` after testing at three widths, removed `aria-current` from the other links on every change, and reused the existing hover underline (`::after`) for the current state instead of a new style.
 
-### Commit 4: `commit-4-sort-orders`
+### Commit 4: `commit-4-cv-download`
 
-- **Commit Message:** Add sort orders on top of filter and search
-- **Commit Description:** sequence and PROJECT_SORTS in the data, sort select with styles, filter → search → sort pipeline, filter and sort remembered
+- **Commit Message:** Add the CV download
+- **Commit Description:** CV docx in assets, Download CV hero button, CV row in the contact details
+- **AI Assisted:** No (Manual Implementation)
+- **Details:** Added my CV to `assets/`, replaced the second hero button with a *Download CV* link using the `download` attribute, and added a CV row to the contact details list.
+
+### Commit 5: `commit-5-case-study-data`
+
+- **Commit Message:** Add case-study media and details to the data
+- **Commit Description:** poster or gallery and a details list per project, new poster, journal page and gallery images
 - **AI Assisted:** Yes (Claude)
-- **What AI Suggested:** Storing each sort option as `{ id, label, compare }` so the `<select>` builds itself, a `visibleProjects()` function that filters, searches and then sorts a copy of the array, and a check that resets a saved filter or sort that no longer exists in the data.
-- **What I Changed:** Added `sequence` to every project so "Journal order" and "Projects first" have something to sort by, wrote `syncControls()` to keep the chips and the select in step with `state`, decided not to remember the search text (an old search on the next visit felt broken in testing), and styled the native select myself, including the `option` colours for dark mode and an accessible name.
+- **What AI Suggested:** Extending each project with either a `poster` (one tall journal page) or a `gallery` (several slides), and a `details` array of `[label, value]` pairs that can be rendered as a definition list without changing the schema again.
+- **What I Changed:** Wrote all the details (tools, deliverables, team, course, source) from my posters and journal, picked which projects get a poster and which get a gallery, and prepared and resized the eleven new images.
 
-### Commit 5: `commit-5-contact-topic-and-validation`
+### Commit 6: `commit-6-case-study-viewer`
 
-- **Commit Message:** Add a topic to the contact form with two-step validation
-- **Commit Description:** Topic select, hint under the message, confirmation per topic, presence then shape checks
+- **Commit Message:** Add the case-study viewer
+- **Commit Description:** Notes popup replaced by a case-study dialog filled from data, previous and next in list order, arrow keys, shareable #work/id links, image viewer opens case-study pictures
 - **AI Assisted:** Yes (Claude)
-- **What AI Suggested:** A `TOPICS` map holding a hint and a reply per topic, a `REQUIRED_MESSAGES` object instead of an inline literal, and splitting `validateField()` into a presence step and a shape step.
-- **What I Changed:** Wrote all of the hint, reply and error text in my own words, added `topic` to the draft that is saved and restored, and linked the hint to the textarea with `aria-describedby="message-hint message-error"`.
+- **What AI Suggested:** A first draft of the viewer on top of the native `<dialog>` element: `fillCase()` for the media column and the text, `openCase()` and `stepCase()` that follow the order the list is currently showing, `history.replaceState` for a `#work/<id>` hash, and opening the image viewer as a second dialog stacked on the first.
+- **What I Changed:** Testing found two gaps that I fixed: focus could land on a card that had been re-rendered (now falls back to the first title button), and pasting a link into an already open page did nothing because only the load-time check existed (a `hashchange` listener handles that now). I wrote the two-column layout with `100dvh`, the phone layout, the disabled state of the previous and next buttons, removed the old notes popup markup, styles and script, and made Escape close only the picture when both dialogs are open.
 
-### Commit 6: `commit-6-weather-and-local-time`
+### Commit 7: `commit-7-copy-email-and-print`
 
-- **Commit Message:** Show live weather and local time from Open-Meteo
-- **Commit Description:** fetch and cache helpers, weather line in the contact section, weather codes mapped to words, loading and failure states
+- **Commit Message:** Add a copy-email button and a print stylesheet
+- **Commit Description:** Clipboard API with a text-selection fallback, print layout as a one-column résumé, accessibility mentioned in the skills card
 - **AI Assisted:** Yes (Claude)
-- **What AI Suggested:** After discussing several public APIs, Open-Meteo for a "right now in Khobar" line because it needs no key; `fetchJson()` wrapped in an `AbortController` with an eight-second timer; `cacheGet()` / `cacheSet()` in `sessionStorage` with a timestamp; `Intl.DateTimeFormat` with a time zone instead of hand-written date maths.
-- **What I Changed:** Wrote `describeWeather()` from the WMO weather code table in the Open-Meteo documentation, wrote the three visible states ("checking the weather…", "38° and clear skies", "Weather is unavailable right now"), added the weather credit in the footer, and rejected a generic data-source class because there is exactly one API call.
-
-### Commit 7: `commit-7-in-class-exercises`
-
-- **Commit Message:** Add the in-class exercises section
-- **Commit Description:** EXERCISES data and screenshots, practice section rendered as details elements, show and hide remembered in state, phone layout
-- **AI Assisted:** Yes (Claude)
-- **What AI Suggested:** Rendering each exercise as a native `<details>` element so keyboard and screen-reader support comes for free, a toggle button with `aria-expanded` and `aria-controls`, and keeping the open or closed choice in `state.logOpen`.
-- **What I Changed:** Entered the six exercises (objective, brief, what I took from it) from my design journal, resized the screenshots and gave every image explicit sizes with `loading="lazy"`, and wrote the list, gallery and phone styles myself.
+- **What AI Suggested:** `navigator.clipboard.writeText` with a fallback that selects the address for browsers without the Clipboard API, and a print stylesheet that hides the page chrome and the forms.
+- **What I Changed:** Wrote the button states ("Copied", "Press Ctrl+C") and the 1.8-second reset, decided which sections a printed résumé should keep, and added a print-only set of colour variables because the first draft still printed the dark theme colours.
 
 ### Commit 8: `commit-8-tidy-scripts-and-headers`
 
 - **Commit Message:** Tidy the scripts and update the file headers
-- **Commit Description:** One-line callbacks, trimmed comments, async image decoding, Assignment 3 headers, REST APIs in the skills card
+- **Commit Description:** Theme toggle simplified, unused helpers and rules removed, comments trimmed, Assignment 4 headers
 - **AI Assisted:** Yes (Claude)
-- **What AI Suggested:** A review pass listing callbacks that could sit on one line, comments that repeated the code, and `decoding="async"` for the lazy images.
-- **What I Changed:** Applied the suggestions that matched the existing style, left the comments that explain a decision, updated the stylesheet and data headers for Assignment 3 and added REST APIs to the skills card.
+- **What AI Suggested:** A review pass that listed helpers and rules no longer referenced (`localTime()`, `applyTheme()`, `body.has-lightbox`), a shorter `currentTheme()`, and renaming the reveal observer so the two observers are easy to tell apart.
+- **What I Changed:** Replaced `applyTheme()` with `labelThemeButton()`, moved `REQUIRED_MESSAGES` next to the other form data, deleted the unused code, ran my own check that compares every selector in the stylesheet with the markup and scripts, and updated the headers of `styles.css`, `config.js`, `data.js` and `script.js`.
 
 ### Commit 9: `commit-9-ai-usage-report`
 
 - **Commit Message:** Update the AI usage report
-- **Commit Description:** docs/ai-usage-report.md rewritten for Assignment 3
+- **Commit Description:** docs/ai-usage-report.md rewritten for Assignment 4
 - **AI Assisted:** Yes (Claude)
 - **What AI Suggested:** The section outline required by the assignment guidelines (declaration, usage log, commit audit, reflection, learning outcomes).
 - **What I Changed:** Wrote all reflections, challenges and code adaptations in my own words and matched every entry to the evidence log.
 
-### Commit 10: `commit-10-technical-documentation`
+### Commit 10: `commit-10-docs-and-readme`
 
-- **Commit Message:** Update the technical documentation
-- **Commit Description:** docs/technical-documentation.md rewritten for Assignment 3
+- **Commit Message:** Update the technical documentation and the README
+- **Commit Description:** docs/technical-documentation.md and README.md rewritten for Assignment 4: architecture, user guide, deploying
 - **AI Assisted:** Yes (Claude)
-- **What AI Suggested:** Formatting the state description, the project pipeline and the API request as short code blocks.
-- **What I Changed:** Verified every technical detail against the actual code, wrote the testing list from what I tested in Chrome at three widths, and documented the known limitations.
-
-### Commit 11: `commit-11-update-readme`
-
-- **Commit Message:** Update the README
-- **Commit Description:** What is new, configuration, structure and setup for Assignment 3
-- **AI Assisted:** No (Manual Implementation)
-- **Details:** Updated the root `README.md` with the requirements table, the exercises section, the configuration values, the project structure and the things to try.
+- **What AI Suggested:** Numbering the technical documentation sections, a table for the storage keys and for the dialog's concerns, and a user-guide table in the README.
+- **What I Changed:** Verified every claim against the code (image counts, sizes, storage keys, behaviour by part), wrote the deploying steps for GitHub Pages and Netlify from my own deployment, and wrote the user guide in plain words.
 
 ---
 
@@ -123,23 +114,23 @@ Below is the complete audit of each commit for Assignment 3, documenting whether
 
 ### Benefits
 
-- **Boilerplate in minutes:** The fetch wrapper, the cache helpers and the state helpers took minutes, which left time for the logic, the copy and testing the edge cases.
-- **Listing what can go wrong:** Claude was good at naming failure cases I had not thought of, such as a request that hangs without ever failing, rate limits and full storage.
-- **Platform features explained:** `Intl.DateTimeFormat` with a time zone, `AbortController` and `sessionStorage` versus `localStorage` were explained clearly enough that I could read the MDN pages and use them with confidence.
+- **Faster iteration on interaction details:** The polish of this assignment is in small behaviours (focus return, arrow keys, the hash). I could describe the behaviour I wanted and be testing it within minutes.
+- **A second reader for consistency:** Naming, comment style and section numbering were checked by something that reads the whole file at once.
+- **Platform features explained:** `<dialog>` and `::backdrop`, `history.replaceState`, `aria-current` and the Clipboard API were new to me and were explained well enough to read the MDN pages and use them.
 
 ### Challenges & Overcoming Them
 
-- **Deciding what not to keep:** It suggested saving the search text too. In testing, opening the site the next day with an old search felt broken, so I only save the filter and the sort. Deciding what not to persist was part of the work.
-- **Vague messages:** Generated error and status text was generic. I rewrote every message so it says what happened and what to do next.
-- **Over-abstraction:** Some suggested code was more abstract than the page needs (a generic data-source class). I kept the simpler functions because there is exactly one API call.
+- **Decorative suggestions:** Suggested "creative" features leaned decorative. Deciding what not to build was the main design work of this assignment; I kept the case-study viewer and the print view because they help a visitor.
+- **Confident code with edge-case bugs:** The two dialog problems above only appeared under testing, so I learned to test flows (open, filter, re-open, paste a link) and not just features.
+- **Keeping documentation honest:** It is tempting to describe the ideal system; every claim in the documentation and the README was checked against the code before it stayed.
 
 ---
 
 ## 4. Learning Outcomes
 
-1. **REST APIs in the browser:** Fetching JSON, checking HTTP status codes, and cancelling a request with `AbortController`.
-2. **Caching with an expiry:** Keeping an API response in `sessionStorage` with a timestamp, and why session storage (not local storage) is the right place for data that goes stale.
-3. **State in one place:** Keeping application state in one object with a single save path, and validating saved values against the current data.
-4. **Composing array logic:** `filter`, then `slice`, then `sort` with comparators stored as data.
-5. **Performance basics:** Deferred scripts, lazy images with explicit sizes, a locally served font and a cached API response.
-6. **Responsible AI co-development:** Treating the tool as a reviewer and tutor; every generated function was read, tested (including the failure cases) and edited to match the style of the rest of the code before it stayed.
+1. **Accessible modals with the native `<dialog>`:** What it gives for free (focus trap, Escape, backdrop) and what still has to be written (focus return, body scroll, keyboard shortcuts, stacked dialogs).
+2. **The URL as application state:** Using the hash for a shareable view without polluting history (`replaceState`) and reacting to `hashchange`.
+3. **Print stylesheets as a real feature:** Colour variables, `break-inside`, and hiding the interactive parts.
+4. **A testing routine:** Scripted browser checks after each change, screenshots at three widths, both themes.
+5. **Presenting technical work:** Separating what was resolved, what was not, and what comes next.
+6. **Responsible AI co-development:** Drafted code was reviewed line by line, tested including the failure cases, and edited to match the codebase before it stayed; several suggestions were rejected or simplified.
